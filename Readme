@@ -1,0 +1,12 @@
+## ¿Qué hace este programa?
+
+- Abre la cámara web y muestra la imagen en una ventana.
+- Puedes elegir un color a detectar (Negro, Azul, Verde, Rojo, Morado).
+- Ajusta los rangos de detección de color usando sliders (barras deslizantes).
+- Muestra la imagen original y una máscara donde se ve solo el color seleccionado.
+- Todo se controla con el mouse y el teclado
+
+## ¿Cómo usarlo?
+
+1. **Instala las dependencias**  
+   Abre una terminal y ejecuta
