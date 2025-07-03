@@ -3,65 +3,65 @@ import numpy as np
 import pygame
 import sys
 
-# --- Configuración inicial de Pygame y ventana ---
+# --- Pygame and window initialization ---
 pygame.init()
 WIDTH, HEIGHT = 1100, 650
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Detector de Colores HSV (Claro a Oscuro) - Pygame")
+pygame.display.set_caption("HSV Color Detector (Light to Dark) - Pygame")
 
 FONT = pygame.font.SysFont("Arial", 20)
 SMALL_FONT = pygame.font.SysFont("Arial", 16)
 
-# Rangos HSV iniciales para cada color (de claro a oscuro)
+# Initial HSV ranges for each color (from light to dark)
 # H: 0-179, S: 0-255, V: 0-255
 rangos = {
-    "Negro": [[0, 0, 0], [179, 255, 60]],           # V bajo para negros
-    "Azul": [[90, 80, 40], [130, 255, 255]],        # Azul
-    "Verde": [[35, 80, 40], [85, 255, 255]],        # Verde
-    "Rojo": [[0, 100, 40], [10, 255, 255]],         # Rojo bajo
-    "Morado": [[130, 80, 40], [160, 255, 255]],     # Morado
+    "Negro": [[0, 0, 0], [179, 255, 60]],           # Low V for black
+    "Azul": [[90, 80, 40], [130, 255, 255]],        # Blue
+    "Verde": [[35, 80, 40], [85, 255, 255]],        # Green
+    "Rojo": [[0, 100, 40], [10, 255, 255]],         # Red (low H range)
+    "Morado": [[130, 80, 40], [160, 255, 255]],     # Purple
 }
 colores = list(rangos.keys())
-color_seleccionado = 1  # Índice del color seleccionado (Azul por defecto)
+color_seleccionado = 1  # Selected color index (Blue by default)
 
-# Sliders: [H bajo, H alto, S bajo, S alto, V bajo, V alto]
-slider_labels = ["H bajo", "H alto", "S bajo", "S alto", "V bajo", "V alto"]
+# Sliders: [H low, H high, S low, S high, V low, V high]
+slider_labels = ["H low", "H high", "S low", "S high", "V low", "V high"]
 slider_ranges = [(0, 179), (0, 179), (0, 255), (0, 255), (0, 255), (0, 255)]
-# Valores actuales de los sliders (se actualizan al cambiar de color)
+# Current slider values (updated when color changes)
 slider_values = rangos[colores[color_seleccionado]][0] + rangos[colores[color_seleccionado]][1]
 slider_rects = []
 
 def draw_slider(x, y, w, h, min_val, max_val, value, label):
     """
-    Dibuja un slider horizontal en la pantalla de pygame.
-    Permite hacer click en cualquier parte de la barra para mover el valor.
+    Draws a horizontal slider on the pygame screen.
+    Allows clicking anywhere on the bar to set the value.
 
     Args:
-        x, y: posición del slider
-        w, h: ancho y alto del slider
-        min_val, max_val: valores mínimo y máximo del slider
-        value: valor actual
-        label: texto del slider
+        x, y: slider position
+        w, h: slider width and height
+        min_val, max_val: slider min and max values
+        value: current value
+        label: slider label
 
     Returns:
-        pygame.Rect del área de la barra del slider
+        pygame.Rect of the slider bar area
     """
-    # Barra
+    # Draw bar
     pygame.draw.rect(screen, (200, 200, 200), (x, y, w, h), border_radius=6)
-    # Handle
+    # Draw handle
     pos = int((value - min_val) / (max_val - min_val) * w)
     pygame.draw.rect(screen, (100, 100, 255), (x + pos - 7, y - 5, 14, h + 10), border_radius=7)
-    # Etiqueta y valor
+    # Draw label and value
     txt = SMALL_FONT.render(f"{label}: {value}", True, (0, 0, 0))
     screen.blit(txt, (x + w + 15, y))
-    return pygame.Rect(x, y, w, h)  # El rect es toda la barra
+    return pygame.Rect(x, y, w, h)  # The rect covers the whole bar
 
 def update_slider_from_mouse(mx, my):
     """
-    Permite mover el slider haciendo click en cualquier parte de la barra.
+    Updates the slider value if the user clicks anywhere on the bar.
 
     Args:
-        mx, my: posición del mouse
+        mx, my: mouse position
     """
     for i, rect in enumerate(slider_rects):
         if rect.collidepoint(mx, my):
@@ -71,7 +71,7 @@ def update_slider_from_mouse(mx, my):
             rel_x = max(0, min(w, rel_x))
             value = int(min_val + (rel_x / w) * (max_val - min_val))
             slider_values[i] = value
-            # Actualiza el rango del color seleccionado
+            # Update the selected color's range
             rangos[colores[color_seleccionado]] = [
                 slider_values[:3], slider_values[3:]
             ]
@@ -79,10 +79,10 @@ def update_slider_from_mouse(mx, my):
 
 def draw_color_selector():
     """
-    Dibuja los botones de selección de color.
+    Draws the color selection buttons.
 
     Returns:
-        Lista de pygame.Rect de cada botón de color.
+        List of pygame.Rect for each color button.
     """
     rects = []
     for idx, color in enumerate(colores):
@@ -95,13 +95,13 @@ def draw_color_selector():
 
 def opencv_mask_frame(frame):
     """
-    Aplica el rango HSV seleccionado y devuelve la máscara binaria.
+    Applies the selected HSV range and returns the binary mask.
 
     Args:
-        frame: imagen BGR de OpenCV
+        frame: OpenCV BGR image
 
     Returns:
-        Máscara binaria (np.ndarray)
+        Binary mask (np.ndarray)
     """
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     bajo, alto = rangos[colores[color_seleccionado]]
@@ -115,10 +115,10 @@ def opencv_mask_frame(frame):
 
 def cvimg_to_pygame(img):
     """
-    Convierte una imagen BGR de OpenCV a una Surface de Pygame.
+    Converts an OpenCV BGR image to a Pygame Surface.
 
     Args:
-        img: imagen BGR de OpenCV
+        img: OpenCV BGR image
 
     Returns:
         pygame.Surface
@@ -130,10 +130,10 @@ def cvimg_to_pygame(img):
 
 def mask_to_pygame(mask):
     """
-    Convierte una máscara binaria a una Surface de Pygame.
+    Converts a binary mask to a Pygame Surface.
 
     Args:
-        mask: máscara binaria (np.ndarray)
+        mask: binary mask (np.ndarray)
 
     Returns:
         pygame.Surface
@@ -145,7 +145,7 @@ def mask_to_pygame(mask):
 
 def update_sliders_from_color():
     """
-    Actualiza los valores de los sliders cuando se selecciona un nuevo color.
+    Updates the slider values when a new color is selected.
     """
     global slider_values
     slider_values = rangos[colores[color_seleccionado]][0] + rangos[colores[color_seleccionado]][1]
@@ -164,7 +164,7 @@ while True:
             mx, my = pygame.mouse.get_pos()
             # Sliders
             update_slider_from_mouse(mx, my)
-            # Selector de color
+            # Color selector
             color_rects = draw_color_selector()
             for idx, rect in enumerate(color_rects):
                 if rect.collidepoint(mx, my):
@@ -176,7 +176,7 @@ while True:
                 pygame.quit()
                 sys.exit()
 
-    # Captura frame de la cámara y procesa
+    # Capture frame from camera and process
     ret, frame = cap.read()
     if not ret:
         continue
@@ -186,22 +186,22 @@ while True:
 
     screen.fill((240, 240, 240))
 
-    # Sliders (más a la izquierda)
+    # Sliders (aligned to the left)
     slider_rects = []
     for i, (label, (min_val, max_val), value) in enumerate(zip(slider_labels, slider_ranges, slider_values)):
         rect = draw_slider(60, 60 + i * 48, 380, 22, min_val, max_val, value, label)
         slider_rects.append(rect)
 
-    # Selector de color (abajo a la izquierda)
+    # Color selector (bottom left)
     draw_color_selector()
 
-    # Instrucciones
-    txt = SMALL_FONT.render("Haz click en los sliders para ajustar el rango HSV. Haz click en el color para seleccionarlo.", True, (0, 0, 0))
+    # Instructions
+    txt = SMALL_FONT.render("Click on the sliders to adjust the HSV range. Click on the color to select it.", True, (0, 0, 0))
     screen.blit(txt, (60, 20))
-    txt2 = SMALL_FONT.render("Pulsa ESC o cierra la ventana para salir.", True, (0, 0, 0))
+    txt2 = SMALL_FONT.render("Press ESC or close the window to exit.", True, (0, 0, 0))
     screen.blit(txt2, (60, 40))
 
-    # Mostrar frame original y máscara (más centrados)
+    # Show original frame and mask (centered)
     surf_frame = cvimg_to_pygame(frame_small)
     surf_mask = mask_to_pygame(mask)
     screen.blit(surf_frame, (500, 60))
@@ -209,7 +209,7 @@ while True:
     pygame.draw.rect(screen, (0, 0, 0), (500, 60, 340, 260), 2)
     pygame.draw.rect(screen, (0, 0, 0), (850, 60, 340, 260), 2)
     screen.blit(SMALL_FONT.render("Original", True, (0,0,0)), (500, 40))
-    screen.blit(SMALL_FONT.render("Máscara", True, (0,0,0)), (850, 40))
+    screen.blit(SMALL_FONT.render("Mask", True, (850, 40)))
 
     pygame.display.flip()
     clock.tick(30)
